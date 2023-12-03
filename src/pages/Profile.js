@@ -7,6 +7,7 @@ import {
   View,
   ScrollView,
   Dimensions,
+  Modal,
   ToastAndroid,
 } from "react-native";
 import React, { useState } from "react";
@@ -21,11 +22,20 @@ import { color } from "../styles/color";
 import getUser from "../function/getUser";
 import changeUser from "../function/changeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ImageView from "react-native-image-viewing";
+import { baseUrl } from "../function/baseUrl";
+import * as ImagePicker from "expo-image-picker";
+import mime from "mime";
+import profilePict from "../function/profilePict";
+
 const Profile = () => {
   const navigation = useNavigation();
   const [load, setLoad] = useState(false);
   const [logoutLoad, setLogoutLoad] = useState(false);
   const [refresh, setRefresh] = useState(Math.random());
+  const [imgModal, setImgModal] = useState(false);
+  const [imgPreview, setImgPreview] = useState(false);
+  const [images, setImages] = useState({});
   const [ubah, setUbah] = useState(true);
   const [data, setData] = useState({
     alamat: "",
@@ -75,15 +85,107 @@ const Profile = () => {
   const handleInputText = (inputName, text) => {
     setData({ ...data, [inputName]: text });
   };
+
+  const launchGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], 
+      quality: 1,
+    });
+    if (!result.canceled) {
+      let uri = result.assets[0].uri;
+      let name = result.assets[0].uri.split("/").pop();
+      let type = mime.getType(result.assets[0].uri);
+      profilePict(data.id_penumpang, uri, name, type).then((res) => {
+        setTimeout(() => {
+          getUser().then((resp) => {
+            setData(resp);
+            setImages({
+              uri: baseUrl + "uploads/img/" + resp.img,
+            });
+
+            ToastAndroid.show("Berhasil!", 3000);
+          });
+        }, 1000);
+      });
+    }
+  };
   useFocusEffect(
     React.useCallback(() => {
       getUser().then((res) => {
+        // console.log(res);
         setData(res);
+        setImages({
+          uri: baseUrl + "uploads/img/" + res.img,
+        });
       });
     }, [refresh])
   );
   return (
     <SafeAreaView style={global.container}>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={imgPreview}
+        onRequestClose={() => {
+          setImgPreview(false);
+        }}
+      >
+        <View style={profile.imgModalPreview}>
+          <TouchableOpacity
+            style={profile.closeBtn}
+            onPress={() => {
+              setImgPreview(false);
+            }}
+          >
+            <Text>Tutup</Text>
+          </TouchableOpacity>
+          <Image
+            style={profile.imgLg}
+            source={{ uri: baseUrl + "/uploads/img/" + data.img }}
+          />
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={imgModal}
+        onRequestClose={() => {
+          setImgModal(false);
+        }}
+      >
+        <View style={profile.imgModalContainer}>
+          <View style={profile.imgModalContent}>
+            <TouchableOpacity
+              style={profile.imgBtnOpt}
+              onPress={() => {
+                setImgModal(false);
+                setImgPreview(true);
+              }}
+            >
+              <Text>Lihat Foto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={profile.imgBtnOpt}
+              onPress={() => {
+                setImgModal(false);
+                launchGallery();
+              }}
+            >
+              <Text>Ubah Foto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={profile.imgBtnOpt}
+              onPress={() => {
+                setImgModal(false);
+              }}
+            >
+              <Text>Tutup</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <ScrollView
         style={{
           flex: 1,
@@ -91,11 +193,13 @@ const Profile = () => {
         }}
       >
         <View style={profile.imgContainer}>
-          <TouchableOpacity style={profile.imgBtn}>
-            <Image
-              style={profile.img}
-              source={require("../../assets/img/profile.png")}
-            />
+          <TouchableOpacity
+            style={profile.imgBtn}
+            onPress={() => {
+              setImgModal(true);
+            }}
+          >
+            <Image style={profile.img} source={images} />
           </TouchableOpacity>
           <TouchableOpacity style={profile.logoutBtn} onPress={onLogout}>
             {logoutLoad && <Loading color={color.danger} />}

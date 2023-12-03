@@ -218,6 +218,9 @@ export const home = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  petaModal: {
+    flex: 1,
+  },
   radioContainer: {
     alignItems: "center",
   },
@@ -251,5 +254,15 @@ export const home = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "absolute",
+    top: "50%",
+    left: "50%",
+  },
+  btnMapContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    top: "80%",
+    width: "100%",
+    padding: '5%'
   },
 });

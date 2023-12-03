@@ -30,11 +30,13 @@ import getPosition from "../function/getPosition";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import getRute from "../function/getRute";
 import getEarliest from "../function/getEarliest";
+import getUser from "../function/getUser";
 const Home = () => {
   const [refresh, setRefresh] = useState(Math.random());
   const [load, setLoad] = useState(false);
   const [picker, setPicker] = useState(false);
   const [routeModal, setRouteModal] = useState(false);
+  const [petaModal, setPetaModal] = useState(false);
   const navigation = useNavigation();
   const [mapSection, setMapSection] = useState(false);
   const [initialRegion, setInitialRegion] = useState({
@@ -43,6 +45,7 @@ const Home = () => {
     latitudeDelta: 0,
     longitudeDelta: 0,
   });
+  const [userData, setUserData] = useState([]);
   const [dataRoute, setDataRoute] = useState([]);
 
   const [rute, setrute] = useState([]);
@@ -85,6 +88,7 @@ const Home = () => {
       getPosition().then((result) => {
         setInitialRegion(result);
         setMapSection(true);
+        console.log(result);
       });
 
       getRute().then((result) => {
@@ -93,6 +97,9 @@ const Home = () => {
         setruteLabel(result[0].rute);
       });
 
+      getUser().then((result) => {
+        setUserData(result);
+      });
       const backAction = () => {
         Alert.alert("", "Apakah Anda yakin ingin keluar dari aplikasi?", [
           {
@@ -143,6 +150,24 @@ const Home = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={petaModal}
+        onRequestClose={() => {
+          setPetaModal(false);
+        }}
+      >
+        <View style={home.petaModal}>
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            initialRegion={initialRegion}
+            style={{ flex: 1 }}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
+          ></MapView>
+        </View>
+      </Modal>
       {picker && (
         <View style={home.datePickerContainer}>
           <DatePicker
@@ -161,7 +186,7 @@ const Home = () => {
       )}
 
       <View style={home.header}>
-        <Text style={global.text}>Hi, Afan Alfiandi</Text>
+        <Text style={global.text}>Hi, {userData.nama}</Text>
         <Text style={home.headerText}>Kemana Anda hari ini?</Text>
       </View>
       <View style={home.form}>
@@ -195,7 +220,11 @@ const Home = () => {
       <View style={home.mapSection}>
         <View style={[global.dFlex, global.spaceBetween]}>
           <Text style={home.sectionTitle}>Lokasi Anda</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              setPetaModal(true);
+            }}
+          >
             <Text style={global.primaryText}>Lihat Peta</Text>
           </TouchableOpacity>
         </View>

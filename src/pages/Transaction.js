@@ -50,12 +50,7 @@ const Transaction = ({ route }) => {
   const [routeModal, setRouteModal] = useState(false);
   const [mapModal, setMapModal] = useState(false);
   const navigation = useNavigation();
-  const [initialRegion, setInitialRegion] = useState({
-    latitude: -7.1212223,
-    longitude: 109.3003,
-    latitudeDelta: 0.005,
-    longitudeDelta: 0.005,
-  });
+  const [initialRegion, setInitialRegion] = useState();
   const [dataRoute, setDataRoute] = useState([]);
   const [dataJadwal, setDataJadwal] = useState([]);
   const [harga, setHarga] = useState([]);
@@ -250,7 +245,6 @@ const Transaction = ({ route }) => {
               alignItems: "center",
             }}
             onRegionChangeComplete={onRegionChangeComplete}
-            showsUserLocation={true}
             showsMyLocationButton={true}
           ></MapView>
           <View style={[home.markerContainer]}>
@@ -260,7 +254,19 @@ const Transaction = ({ route }) => {
                 width: 30,
                 height: 30,
                 resizeMode: "contain",
-                marginTop: -20,
+              }}
+            />
+          </View>
+          <View style={[home.btnMapContainer]}>
+            <BtnBlock
+              text={"simpan"}
+              loading={load}
+              onPress={() => {
+                setLoad(true);
+                setTimeout(() => {
+                  setLoad(false);
+                  setMapModal(false);
+                }, 3000);
               }}
             />
           </View>
